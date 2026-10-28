@@ -1,104 +1,106 @@
-# Aurora
+# Aurora 
 
-A light weight, from scratch VCS (version control system) in Python, modelled on the architecture and internals of Git.
+Lightweight, from scratch Python clone of [Git](https://git-scm.com/)'s architecture and internals.
 
-Aurora was built to explore just how Git works at the most fundamental level (content addressed storage, SHA-1 hashed blobs, trees, commits, a completely isolated staging area and branch pointers) from the ground up with absolutely zero external dependencies.
+Aurora is primarily a proof of concept program built from scratch to learn how Git works at it's most core (content addressed storage, SHA-1 hashed blobs, trees, commits, completely isolated Staging Index and HEAD branch pointers) without ANY outside dependencies whatsoever.
 
----
 
-Download Aurora Bash (Windows Standalone)
+--- 
 
-You don't need Python or any development environment installed in order to get started with Aurora.
+Download Aurora Bash (Windows Standalone) 
 
-We provide a pre-built standalone executable with an interactive shell called **Aurora Bash**:
+There's no need to download Python or any sort of development software or environment to run Aurora.
 
-1. Go to the [Latest GitHub Releases](https://github.com/moksh033/Aurora/releases/latest)
-2. Download `aurora.exe` or `aurora-windows-x64-v1.0.zip`.
-3. Double click aurora.exe to launch Aurora Bash straight into its own dedicated terminal interface with the appropriate branding.
-4. (Optional) Add aurora.exe to your Windows PATH if you'd like to invoke aurora <command> from PowerShell, CMD or any other external terminal.
+We've provided a standalone build with interactive shell **Aurora Bash**:
 
----
+1. Open [Latest GitHub Releases](https://github.com/moksh033/Aurora/releases/latest) 
+2. Download `aurora.exe` or `aurora-windows-x64-v1.0.zip`. 
+3. Double click on `aurora.exe` to launch Aurora Bash into it's own custom terminal window with special branding.
+4. *(Optional)* Add `aurora.exe` to your Windows PATH if you want to use aurora <command> globally from PowerShell, CMD or any other terminal program.
 
-## What Aurora Can Do
+--- 
 
-- Object storage (in .aurora/objects) compresses and stores the file contents (blobs), directories (trees) and history checkpoints (commits) all indexed by their SHA-1 hash using zlib.
-- Staging Index (`.aurora/index`): A working staging area in which you can prepare your commits file by file or directory wide.
-- Commit history & graphs: parent commit hashes, author timestamps and formatted commit log.
-- Branching & HEAD pointers: create, switch and delete branches as required.
-- Working tree inspection: real time status of untracked, modified, staged and deleted files.
-- **Dual Mode Interface**:
-  Run it as a regular command line tool. For example, use `aurora init` or `aurora commit -m "..."`.
-  - Or just go straight into the interactive Aurora Bash shell.
+## What Aurora Does 
 
----
+- Store objects (.aurora/objects) compressed files (blobs), directories (trees) and checkpoints (commits) using zlib and indexed by SHA-1 hash.
+- Has own standalone staging index (`.aurora/index`) to modify your next commit file-by-file or recursively entire folders at once.
+- Persistent commit history & graphs using parent commit hashes and human readable timestamps & messages.
+- Maintains pointers to branches (`master`) and head (WHAT YOU'RE WORKING ON) for easy branch management.
+- Inspect your working tree for real time status of modified, staged, deleted or untracked files.
+- **Interactive Mode:** 
+- Operate Aurora as a traditional command line tool. ie. `aurora init` or `aurora commit -m "Something new..."`.
+- _Or Enter the interactive Aurora Bash prompt_ 
 
-## Running from Source
+--- 
 
-If you prefer to run or modify the code directly:
+## Running Aurora From Source 
 
-### Requirements
-- Python 3.8+
-- Pure Python standard library (no pip install required).
+Want to run Aurora yourself or make your own modifications?
 
-### Setup
+### Requirements 
+- Python 3.8+ 
+- No special libraries outside of the **Python Standard Library**
 
-```bash
-git clone https://github.com/moksh033/Aurora.git
-cd Aurora
-```
+### Installation 
 
-#### Linux / macOS:
-```bash
-chmod +x aurora
-./aurora --help
-```
-*(Optional: move to system PATH)*:
-```bash
-sudo cp aurora /usr/local/bin/aurora
-```
+```bash 
+git clone https://github.com/moksh033/Aurora.git 
+cd Aurora 
+``` 
 
-#### Windows:
-Invoke the included batch runner or Python script:
-```cmd
-aurora.cmd --help
-```
-or
-```bash
-python main.py
-```
-*(Running without arguments starts Aurora Bash)*
+#### Linux / macOS: 
+```bash 
+chmod +x aurora 
+./aurora --help 
+``` 
+*Make Aurora globally executable (Optional):* 
+```bash 
+sudo cp aurora /usr/local/bin/aurora 
+``` 
 
----
+#### Windows: 
+Run either the bundled batch file or the Python script directly:
 
-## Command Reference
+```cmd 
+aurora. cmd --help 
+``` 
+```bash 
+python main.py 
+``` 
+*Runs Aurora Bash if no arguments are provided. * 
 
-| Command | Description | Example |
-|---|---|---|
-| `init` | Start a new repository (`.aurora/`) | `aurora init` |
-| `add` | Stage files or entire folders | `aurora add <path>` |
-| `commit` | Save staged snapshot with message | `aurora commit -m "Initial commit"` |
-| `status` | Check modified, staged, or untracked changes | `aurora status` |
-| `log` | Browse commit logs | `aurora log` |
-| `branch` | List branches, create new, or delete (`-d`) | `aurora branch feature-branch` |
-| `checkout` | Switch branches or create and checkout (`-b`) | `aurora checkout -b feature-branch` |
+--- 
 
----
+## Command Help 
 
-## Interactive Aurora Bash Commands
+| Command | Description | Example | 
+| ------- | ------------------ | ---------------------- | 
+| `init` | Create a new repo | `aurora init` | 
+| `add` | Stage files/folder | `aurora add <file.ext>`| 
+| `commit`| Commit your changes| `aurora commit -m "Message"` |
+| `status`| View file status | `aurora status` | 
+| `log` | View git logs | `aurora log` | 
+| `branch`| Manage branches | `aurora branch <name>` | 
+| `checkout` | Switch Branches | `aurora checkout <branch>` | 
 
-If you just launch aurora.exe or run python main.py with no arguments at all then Aurora will open an interactive prompt:
+--- 
 
-```text
-aurora-user@local C:\Your\Project
-$ init
-$ add .
-$ commit -m "My first commit"
-```
+## Aurora Bash Commands 
 
-The common built-in shell commands (ls, cd <dir>, pwd, clear and exit) are all built in as well.
+Launch `aurora.exe` or run `python main.py` with NO arguments to enter Aurora Bash.
 
----
+```text 
+aurora-user@local C:\Your\Project 
+$ 
+$ init # Initialize a new Repository (.aurora/) 
+$ add . # Add files to staging index (.aurora/index) 
+$ commit -m "message" # Create a commit (.aurora/objects/*) 
+$ 
+``` 
+Change directory (cd), copy (cp), print working directory (pwd) and other basic built-in shell commands are supported as well.
 
-## License
+--- 
 
-This project is licensed under the MIT License.
+## License 
+
+[MIT License](LICENSE) 
