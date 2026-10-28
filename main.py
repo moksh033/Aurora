@@ -13,7 +13,10 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 
+# make sure to keep future import on top
 
+
+# main git object thtll act as the parent
 class GitObject:
     def __init__(self, obj_type: str, content: bytes):
         self.type = obj_type
@@ -38,6 +41,9 @@ class GitObject:
         return cls(obj_type, content)
 
 
+# blob object class
+
+
 class Blob(GitObject):
     def __init__(self, content: bytes):
         super().__init__("blob", content)
@@ -46,6 +52,7 @@ class Blob(GitObject):
         return self.content
 
 
+# tree object class
 class Tree(GitObject):
     def __init__(self, entries: list[Tuple[str, str, str]] = None):
         self.entries = entries or []
@@ -86,6 +93,7 @@ class Tree(GitObject):
         return tree
 
 
+# commit object class
 class Commit(GitObject):
     def __init__(
         self,
@@ -156,6 +164,7 @@ class Commit(GitObject):
         return commit
 
 
+# repo class
 class Repository:
     def __init__(self, path="."):
         self.path = Path(path).resolve()
@@ -166,13 +175,13 @@ class Repository:
         # aurora refs
         self.refs_dir = self.git_dir / "refs"
         self.heads_dir = self.refs_dir / "heads"
-        # aurora HEAD file
+        #  aurora HEAD file
         self.head_file = self.git_dir / "HEAD"
         # aurora index
         self.index_file = self.git_dir / "index"
 
     def init(self) -> bool:
-        # Checking if already made
+        # Check if already made
         if self.git_dir.exists():
             return False
 
@@ -242,7 +251,8 @@ class Repository:
             raise ValueError(f"{path} is not a directory")
         index = self.load_index()
         added_count = 0
-        # go over all files in dir
+
+        # goes over all files in dir using rglob
         for file_path in full_path.rglob("*"):
             if file_path.is_file():
                 if any(part.lower() in [".aurora", ".git"] for part in file_path.parts):
@@ -398,6 +408,7 @@ class Repository:
 
         return files
 
+    # logic for checkout command
     def checkout(self, branch: str, create_branch: bool):
         previous_branch = self.get_current_branch()
         previous_commit_hash = self.get_branch_commit(previous_branch)
@@ -638,7 +649,7 @@ class Repository:
         untracked_files = []
         deleted_files = []
 
-        # what files are staged for commit
+        # what files are staged forcommit
         for file_path in set(index.keys()) | set(last_index_files.keys()):
             index_hash = index.get(file_path)
             last_index_hash = last_index_files.get(file_path)
@@ -657,9 +668,6 @@ class Repository:
             if file_path in index:
                 if working_files[file_path] != index[file_path]:
                     unstaged_files.append(file_path)
-            elif file_path in last_index_files:
-                if working_files[file_path] != last_index_files[file_path]:
-                    unstaged_files.append(file_path)
         if unstaged_files:
             print("Changes not staged for commit: ")
             for file_path in sorted(unstaged_files):
@@ -674,7 +682,7 @@ class Repository:
             for file_path in sorted(untracked_files):
                 print(f"   {file_path}")
         # deleted files
-        for file_path in set(index.keys()) | set(last_index_files.keys()):
+        for file_path in index:
             if file_path not in working_files:
                 deleted_files.append(file_path)
 
@@ -692,7 +700,9 @@ class Repository:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Aurora - !")
+    parser = argparse.ArgumentParser(
+        description="Aurora - Version Control System by Moksh!"
+    )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # init cmd
@@ -715,6 +725,7 @@ def main():
         action="store_true",
         help="Create and switch to a new branch",
     )
+    # branch command
     branch_parser = subparsers.add_parser("branch", help="List or manage branches")
     branch_parser.add_argument("name", nargs="?")
     branch_parser.add_argument(
@@ -791,6 +802,7 @@ def main():
         sys.exit(1)
 
 
+# calling the helper.py file containing all the other stuff ( aurura bash logo and all)
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         import helper
