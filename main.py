@@ -700,9 +700,7 @@ class Repository:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Aurora - Version Control System by Moksh!"
-    )
+    parser = argparse.ArgumentParser(description="Aurora - Version Control System by Moksh!")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # init cmd
@@ -802,7 +800,7 @@ def main():
         sys.exit(1)
 
 
-# calling the helper.py file containing all the other stuff ( aurura bash logo and all)
+# calling the helper.py file containing all the other stuff ( aurora bash logo and all)
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         import helper
