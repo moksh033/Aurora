@@ -243,9 +243,7 @@ class Repository:
         index = self.load_index()
         added_count = 0
         # go over all files in dir
-        for file_path in full_path.rglob(
-            "*"
-        ):
+        for file_path in full_path.rglob("*"):
             if file_path.is_file():
                 if any(part.lower() in [".aurora", ".git"] for part in file_path.parts):
                     continue
@@ -659,6 +657,9 @@ class Repository:
             if file_path in index:
                 if working_files[file_path] != index[file_path]:
                     unstaged_files.append(file_path)
+            elif file_path in last_index_files:
+                if working_files[file_path] != last_index_files[file_path]:
+                    unstaged_files.append(file_path)
         if unstaged_files:
             print("Changes not staged for commit: ")
             for file_path in sorted(unstaged_files):
@@ -673,7 +674,7 @@ class Repository:
             for file_path in sorted(untracked_files):
                 print(f"   {file_path}")
         # deleted files
-        for file_path in index:
+        for file_path in set(index.keys()) | set(last_index_files.keys()):
             if file_path not in working_files:
                 deleted_files.append(file_path)
 
@@ -793,6 +794,7 @@ def main():
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         import helper
+
         helper.run_aurora_bash()
     else:
         main()
