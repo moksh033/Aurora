@@ -4,17 +4,15 @@ import sys
 import shlex
 import subprocess
 from pathlib import Path
-from typing import Any, Callable, List, Optional
 
 
 def enable_virtual_terminal() -> None:
-    """Enables virtual terminal processing (ANSI color codes) in Windows console."""
     if os.name != "nt":
         return
     try:
         import ctypes
         kernel32 = ctypes.windll.kernel32
-        h_stdout = kernel32.GetStdHandle(-11)  # STD_OUTPUT_HANDLE
+        h_stdout = kernel32.GetStdHandle(-11)
         mode = ctypes.c_ulong()
         if kernel32.GetConsoleMode(h_stdout, ctypes.byref(mode)):
             kernel32.SetConsoleMode(h_stdout, mode.value | 0x0004)
@@ -23,8 +21,6 @@ def enable_virtual_terminal() -> None:
 
 
 def ensure_standalone_console() -> None:
-    """If running interactively on Windows inside Windows Terminal/PowerShell tab,
-    relaunch in a dedicated standalone console window so the Aurora logo appears in the taskbar."""
     if os.name != "nt":
         return
     if len(sys.argv) == 1 and os.environ.get("WT_SESSION") and os.environ.get("AURORA_STANDALONE") != "1":
@@ -42,7 +38,6 @@ def ensure_standalone_console() -> None:
 
 
 def set_window_icon() -> None:
-    """Sets the console window and taskbar icon on Windows using aurora.ico if available."""
     if os.name != "nt":
         return
     try:
@@ -54,7 +49,6 @@ def set_window_icon() -> None:
         except Exception:
             pass
 
-        # Find icon path (support both PyInstaller bundle and script location)
         base_dir = getattr(sys, "_MEIPASS", Path(__file__).resolve().parent)
         icon_path = Path(base_dir) / "aurora.ico"
         if not icon_path.exists():
@@ -96,13 +90,8 @@ def set_window_icon() -> None:
         pass
 
 
-def run_aurora_bash(repo_cls: Any = None, cli_executor: Optional[Callable[[List[str]], None]] = None) -> None:
-    """Runs the interactive Aurora Bash shell."""
-    if repo_cls is None or cli_executor is None:
-        import main
-        repo_cls = repo_cls or getattr(main, "Repository", None)
-        cli_executor = cli_executor or getattr(main, "execute_cli", None)
-
+def run_aurora_bash() -> None:
+    ensure_standalone_console()
     enable_virtual_terminal()
     if os.name == "nt":
         try:
@@ -130,12 +119,22 @@ Shell commands: {BOLD}ls{RESET}, {BOLD}cd <dir>{RESET}, {BOLD}pwd{RESET}, {BOLD}
 """
     print(banner)
 
+    try:
+        import main
+        repo_cls = getattr(main, "Repository", None)
+    except Exception:
+        repo_cls = None
+
     while True:
         cwd = Path.cwd()
-        repo = repo_cls()
         branch_str = ""
-        if repo.git_dir.exists():
-            branch_str = f" {CYAN}({repo.get_current_branch()}){RESET}"
+        if repo_cls:
+            try:
+                repo = repo_cls()
+                if repo.git_dir.exists():
+                    branch_str = f" {CYAN}({repo.get_current_branch()}){RESET}"
+            except Exception:
+                pass
 
         prompt = f"{GREEN}aurora-user@local{RESET} {YELLOW}{cwd}{RESET}{branch_str}\n$ "
 
@@ -193,7 +192,6 @@ Shell commands: {BOLD}ls{RESET}, {BOLD}cd <dir>{RESET}, {BOLD}pwd{RESET}, {BOLD}
             print("  cd <path>, ls, pwd, clear, exit\n")
             continue
 
-        # Run aurora command or fallback to system shell
         if cmd == "aurora":
             cli_args = parts[1:]
         elif cmd in ("init", "add", "commit", "checkout", "branch", "log", "status"):
@@ -205,5 +203,15 @@ Shell commands: {BOLD}ls{RESET}, {BOLD}cd <dir>{RESET}, {BOLD}pwd{RESET}, {BOLD}
                 print(f"Error: {e}")
             continue
 
-        if cli_args and cli_executor:
-            cli_executor(cli_args)
+        if cli_args:
+            old_argv = sys.argv
+            try:
+                sys.argv = ["aurora"] + cli_args
+                import main
+                main.main()
+            except SystemExit:
+                pass
+            except Exception as e:
+                print(f"Error: {e}")
+            finally:
+                sys.argv = old_argv

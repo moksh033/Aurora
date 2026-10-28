@@ -12,12 +12,6 @@ import time
 from typing import Dict
 from typing import List
 from typing import Tuple
-from helper import (
-    enable_virtual_terminal,
-    ensure_standalone_console,
-    set_window_icon,
-    run_aurora_bash,
-)
 
 
 class GitObject:
@@ -251,7 +245,7 @@ class Repository:
         # go over all files in dir
         for file_path in full_path.rglob(
             "*"
-        ):  # rglob("*") finds and gives all files recursively
+        ):
             if file_path.is_file():
                 if any(part.lower() in [".aurora", ".git"] for part in file_path.parts):
                     continue
@@ -337,7 +331,7 @@ class Repository:
         head_content = self.head_file.read_text().strip()
         if head_content.startswith("ref: refs/heads/"):
             return head_content[16:]
-        return "HEAD"  # DETACHED HEAD
+        return "HEAD"
 
     def get_branch_commit(self, current_branch: str):
         branch_file = self.heads_dir / current_branch
@@ -436,7 +430,6 @@ class Repository:
 
         target_commit_hash = self.get_branch_commit(branch)
 
-        # If both branches point to the same commit, no files need to be changed
         if previous_commit_hash == target_commit_hash:
             return
 
@@ -464,7 +457,6 @@ class Repository:
             except Exception as e:
                 print(f"Warning: Could not read target commit: {e}")
 
-        # Only delete files that were in the old commit and are NOT in the new commit
         files_to_clear = old_files - new_files
         files_to_clear = {
             f
@@ -484,7 +476,6 @@ class Repository:
         tree = Tree.from_content(tree_obj.content)
 
         for mode, name, obj_hash in tree.entries:
-            # Never restore or overwrite internal VCS directories
             if any(part.lower() in [".aurora", ".git"] for part in Path(name).parts):
                 continue
 
@@ -699,12 +690,12 @@ class Repository:
             print("\nnothing to commit, working tree is clean")
 
 
-def execute_cli(argv: List[str]):
-    parser = argparse.ArgumentParser(prog="aurora", description="Aurora - version control system !")
+def main():
+    parser = argparse.ArgumentParser(description="Aurora - !")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # init cmd
-    subparsers.add_parser("init", help="Initialize a new repository")
+    init_parser = subparsers.add_parser("init", help="Initialize a new repository")
     # add command
     add_parser = subparsers.add_parser(
         "add", help="Add files and directories to the staging area"
@@ -748,17 +739,13 @@ def execute_cli(argv: List[str]):
     )
 
     # status command
-    subparsers.add_parser("status", help="Show repository status")
+    status_parser = subparsers.add_parser("status", help="Show repository status")
 
-    try:
-        args = parser.parse_args(argv)
-    except SystemExit:
-        return
+    args = parser.parse_args()
 
     if not args.command:
         parser.print_help()
         return
-
     repo = Repository()
     try:
         if args.command == "init":
@@ -800,16 +787,12 @@ def execute_cli(argv: List[str]):
             repo.status()
     except Exception as e:
         print(f"Error: {e}")
-
-
-def main():
-    ensure_standalone_console()
-    set_window_icon()
-    if len(sys.argv) > 1:
-        execute_cli(sys.argv[1:])
-    else:
-        run_aurora_bash(repo_cls=Repository, cli_executor=execute_cli)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) == 1:
+        import helper
+        helper.run_aurora_bash()
+    else:
+        main()
